@@ -4,6 +4,7 @@ module Mongoid
   class TestCase < Minitest::Test #:nodoc:
 
     def setup
+      Mongoid::Migrator.migrations_path = ["db/migrate"]
       Mongoid::Migration.verbose = true
       Mongo::Logger.logger.level = 1
       # same as db:drop command in lib/mongoid_rails_migrations/mongoid_ext/railties/database.rake
@@ -247,6 +248,20 @@ database: mongoid_test
         Mongoid::Migrator.up(MIGRATIONS_ROOT + "/crash")
       end
       assert_match(/\A==  BasicCrash: migrating =====================================================\nAn error has occurred, 20210105165947 and all later migrations canceled:\n\nCrash migration\n.*\/test\/migrations\/crash\/20210105165947_basic_crash.rb:3:in `up'\n/, buffer)
+    end
+  end
+
+  class NameSpaceTestCase < TestCase
+    def setup
+      Mongoid::Migrator.namespace = 'db:mongoid'
+      super
+      Mongoid::Migrator.migrations_path = ["db/mongoid"]
+    end
+
+    def test_migrations_path
+      assert_equal ["db/mongoid"], Mongoid::Migrator.migrations_path
+      Mongoid::Migrator.migrations_path += ["engines/my_engine/db/migrate"]
+      assert_equal ["db/mongoid", "engines/my_engine/db/migrate"], Mongoid::Migrator.migrations_path
     end
   end
 end
