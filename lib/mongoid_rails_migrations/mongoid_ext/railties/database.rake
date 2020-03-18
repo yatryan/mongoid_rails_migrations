@@ -1,6 +1,6 @@
-namespace :db do
-  if Rake::Task.task_defined?("db:drop")
-    Rake::Task["db:drop"].clear
+namespace Mongoid::Migrator.namespace do
+  if Rake::Task.task_defined?("#{Mongoid::Migrator.namespace}:drop")
+    Rake::Task["#{Mongoid::Migrator.namespace}:drop"].clear
   end
 
   desc 'Drops all the collections for the database for the current Rails.env'
@@ -8,7 +8,7 @@ namespace :db do
     Mongoid::Migration.connection.database.drop
   end
 
-  unless Rake::Task.task_defined?("db:seed")
+  unless Rake::Task.task_defined?("#{Mongoid::Migrator.namespace}:seed")
     # if another ORM has defined db:seed, don't run it twice.
     desc 'Load the seed data from db/seeds.rb'
     task :seed => :environment do
@@ -17,17 +17,17 @@ namespace :db do
     end
   end
 
-  unless Rake::Task.task_defined?("db:setup")
+  unless Rake::Task.task_defined?("#{Mongoid::Migrator.namespace}:setup")
     desc 'Create the database, and initialize with the seed data'
-    task :setup => [ 'db:create', 'db:seed' ]
+    task :setup => [ "#{Mongoid::Migrator.namespace}:create", "#{Mongoid::Migrator.namespace}:seed" ]
   end
 
-  unless Rake::Task.task_defined?("db:reseed")
+  unless Rake::Task.task_defined?("#{Mongoid::Migrator.namespace}:reseed")
     desc 'Delete data and seed'
-    task :reseed => [ 'db:drop', 'db:seed' ]
+    task :reseed => [ "#{Mongoid::Migrator.namespace}:drop", "#{Mongoid::Migrator.namespace}:seed" ]
   end
 
-  unless Rake::Task.task_defined?("db:create")
+  unless Rake::Task.task_defined?("#{Mongoid::Migrator.namespace}:create")
     task :create => :environment do
       # noop
     end
@@ -48,17 +48,19 @@ namespace :db do
     desc 'Rollback the database one migration and re migrate up. If you want to rollback more than one step, define STEP=x. Target specific version with VERSION=x.'
     task :redo => :environment do
       if ENV["VERSION"]
-        Rake::Task["db:migrate:down"].invoke
-        Rake::Task["db:migrate:up"].invoke
+        Rake::Task["#{Mongoid::Migrator.namespace}:migrate:down"].invoke
+        Rake::Task["#{Mongoid::Migrator.namespace}:migrate:up"].invoke
       else
-        Rake::Task["db:rollback"].invoke
-        Rake::Task["db:migrate"].invoke
+        Rake::Task["#{Mongoid::Migrator.namespace}:rollback"].invoke
+        Rake::Task["#{Mongoid::Migrator.namespace}:migrate"].invoke
       end
     end
 
     desc 'Resets your database using your migrations for the current environment'
     # should db:create be changed to db:setup? It makes more sense wanting to seed
-    task :reset => ["db:drop", "db:create", "db:migrate"]
+    task :reset => ["#{Mongoid::Migrator.namespace}:drop",
+                    "#{Mongoid::Migrator.namespace}:create",
+                    "#{Mongoid::Migrator.namespace}:migrate"]
 
     desc 'Runs the "up" for a given migration VERSION.'
     task :up => :environment do
