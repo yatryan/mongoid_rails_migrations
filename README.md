@@ -90,6 +90,7 @@ Mongoid.configure.shards_migration_as_default = true
 Global migrations can still be created with the `--no-shards` option.
 
 ## Using along side ActiveRecord migrations
+
 If your rails app uses both `Mongoid` and `ActiveRecord` migrations then the migration files and rake tasks created by the two gems will cause conflict.
 In order to resolve this add the following lines to your `application.rb` file:
 ```
